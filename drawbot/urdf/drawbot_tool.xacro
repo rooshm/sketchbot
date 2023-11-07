@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="https://ros.org/wiki/xacro">
+  <!-- Here we define the 2 parameters of the macro -->
+  <xacro:macro name="drawbot_tool" params="prefix connected_to">
+    <!-- Create a fixed joint with a parameterized name. -->
+    <joint name="${prefix}drawbot_joint" type="fixed">
+      <!-- The parent link must be read from the robot model it is attached to. -->
+      <parent link="${connected_to}"/>
+      <child link="${prefix}drawbot_tool"/>
+      <!-- The tool is directly attached to the flange. -->
+      <origin rpy="3.14 3.14 0" xyz="0 0 -0.02"/>
+    </joint>
+    <link name="${prefix}drawbot_tool">
+      <visual>
+        <geometry>
+          <!-- The path to the visual meshes in the package. -->
+          <mesh filename="package://drawbot/meshes/visual/tool.stl"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <!-- The path to the collision meshes in the package. -->
+          <mesh filename="package://drawbot/meshes/collision/tool.stl"/>
+        </geometry>
+      </collision>
+    </link>
+
+  </xacro:macro>
+</robot>
+

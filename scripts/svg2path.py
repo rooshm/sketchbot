@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # ROS2 related imports
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
+from geometry_msgs.msg import PoseArray, Pose, Point, Quaternion
 
 # To handle svg parsing, can be installed using pip
 # pip install svgelements
@@ -66,8 +66,8 @@ class svg2path(Node):
 
         # Create ROS2 node to publish path
         super().__init__("svg2path")
-        self.pub = self.create_publisher(PoseStamped, self.topic_name, 1)
-        self.ros_path = PoseStamped()
+        self.pub = self.create_publisher(PoseArray, self.topic_name, 1)
+        self.ros_path = PoseArray()
 
         # Need to add a subscriber to get the incoming image and frame id
         # Currently using a constant frame id and a saved svg file path
@@ -212,41 +212,45 @@ class svg2path(Node):
                 pose.position.z = self.complete_path[i][j][2]
                 pose.orientation = quat
 
-                self.ros_path.pose.append(pose)
+                self.ros_path.poses.append(pose)
 
         # Publish path
         self.pub.publish(self.ros_path)
 
-    def main(self, args=None):
-        """Main function"""
+def main(svg_path:str, save_dist:float=0.1, pix_scale:float=0.001, square_path:bool=True, topic_name:str="/draw_path", args=None):
+    """Main function to run svg2path class"""
 
-        # Initialize rclpy library
-        rclpy.init(args=args)
+    # Initialize rclpy library
+    rclpy.init(args=args)
 
-        # Get path
-        self.get_path()
+    # Create svg2path object
+    pathCreate = svg2path(svg_path, save_dist, pix_scale, square_path, topic_name)
 
-        # Publish path
-        self.publish_path()
+    # Get path
+    pathCreate.get_path()
+    # Publish path
+    pathCreate.publish_path()
+    # Plot path
+    pathCreate.plot_path()
 
-        # Plot path
-        self.plot_path()
+    ## TODO: This ROS structure will change as per system integration
+    # Destroy the node
+    pathCreate.destroy_node()
+    # Shutdown ROS client
+    rclpy.shutdown()
 
 
 if __name__ == "__main__":
 
     # Test parameters
-    svg_path = "out.svg"
+    svg_path = "../data/out.svg"
     save_dist = 0.1
     pix_scale = 0.01
     square_path = True
     topic_name = "/draw_path"
 
-    # Create svg2path object
-    pathCreate = svg2path(svg_path, save_dist, pix_scale, square_path, topic_name)
-
     # Run main function
-    pathCreate.main()
+    main(svg_path, save_dist, pix_scale, square_path, topic_name)
 
     # Show plot
     plt.show()

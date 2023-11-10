@@ -199,7 +199,6 @@ class svg2PathService(Node):
         """Constructor method"""
 
         super().__init__('svg2path_service')
-        self.path_msg = PoseArray()
         self.srv = self.create_service(Svg2Path, '/svg2path', self.svg2path_callback)
 
     def svg2path_callback(self, request, response):
@@ -225,6 +224,9 @@ class svg2PathService(Node):
         quat.w = 1.0
 
         # Create PoseArray message
+        # Creating a new message object each time, to avoid appending to previous message
+        self.path_msg = PoseArray()
+
         # TODO: Change frame_id to camera frame
         self.path_msg.header.frame_id = "/camera"
 
@@ -244,8 +246,10 @@ class svg2PathService(Node):
         # Set response success flag if path is not empty
         if len(response.path.poses) > 0:
             response.success = True
+            self.get_logger().info('Path generated successfully')
         else:
             response.success = False
+            self.get_logger().info('Path generation failed')
 
         return response
 
@@ -268,22 +272,3 @@ def main(args=None):
 
 if __name__ == "__main__":
     main()
-
-    ## Testing without ROS2
-    # # Test parameters
-    # svg_path = "../data/out.svg"
-    # save_dist = 0.1
-    # pix_scale = 0.01
-    # square_path = True
-
-    # # Create svg2path object
-    # pathCreate = svg2path(svg_path, save_dist, pix_scale, square_path)
-
-    # # Get path
-    # pathCreate.get_path()
-
-    # # Plot path
-    # pathCreate.plot_path(is_scatter=True, show_numbers=False)
-
-    # # Show plot
-    # plt.show()

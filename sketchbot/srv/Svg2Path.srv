@@ -1,7 +1,7 @@
 string file_path
-float64 save_dist 0.1
-float64 scale 0.001
-bool square_path True
+float64 save_dist 0.1 # 0.1m default
+float64 scale 0.001 # 0.001m default
+bool square_path True # True default
 ---
 geometry_msgs/PoseArray path
 bool success

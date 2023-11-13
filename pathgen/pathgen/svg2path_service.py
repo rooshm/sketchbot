@@ -227,8 +227,9 @@ class svg2PathService(Node):
         # Creating a new message object each time, to avoid appending to previous message
         self.path_msg = PoseArray()
 
-        # TODO: Change frame_id to camera frame
-        self.path_msg.header.frame_id = "/camera"
+        # The entire path is defined in the drawing board frame.
+        # The /draw_board is defined as the frame on top-left corner of the drawing board with z-axis pointing down.
+        self.path_msg.header.frame_id = "/draw_board"
 
         # Append poses to PoseArray message
         for i in range(len(pathCreate.complete_path)):

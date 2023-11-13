@@ -34,7 +34,7 @@ class svg2PathClient(Node):
         self.req.file_path = os.path.join(install_dir, '../../src/sketchbot/pathgen/data/out.svg')
 
         # Optional parameters for service request as default values are set in service definition
-        self.req.save_dist = 0.1
+        self.req.save_dist = -0.1 # -ve z-value as /draw_board z-axis is pointing down into the table.
         self.req.scale = 0.01
         self.req.square_path = True
 

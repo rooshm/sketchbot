@@ -1,4 +1,4 @@
-# Sketchbot
+# Sketchbot Interfaces
 
 ROS2 cpp package for custom service and message types for the entire package.
 

@@ -10,7 +10,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseArray, Pose, Quaternion
 
 # Import custom service
-from sketchbot.srv import Svg2Path
+from sketchbot_interfaces.srv import Svg2Path
 
 # To handle svg parsing, can be installed using pip
 # pip install svgelements

@@ -7,7 +7,7 @@ import rclpy
 from rclpy.node import Node
 from ament_index_python.packages import get_package_prefix
 
-from sketchbot.srv import Svg2Path
+from sketchbot_interfaces.srv import Svg2Path
 
 
 class svg2PathClient(Node):
@@ -31,7 +31,7 @@ class svg2PathClient(Node):
         install_dir = get_package_prefix('pathgen')
 
         # Path is required in service request
-        self.req.file_path = os.path.join(install_dir, '../../src/sketchbot/pathgen/data/out.svg')
+        self.req.file_path = os.path.join(install_dir, '../../src/sketchbot/data/out.svg')
 
         # Optional parameters for service request as default values are set in service definition
         self.req.save_dist = -0.1 # -ve z-value as /draw_board z-axis is pointing down into the table.

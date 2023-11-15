@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="https://ros.org/wiki/xacro">
+  <xacro:macro name="drawbot_tool" params="prefix connected_to">
+      
+    <joint name="${prefix}drawbot_joint" type="fixed">
+      <parent link="${connected_to}"/>
+      <child link="${prefix}drawbot_tool"/>
+      <origin rpy="3.14 3.14 0" xyz="0 0 -0.02"/>
+    </joint>
+    
+    <joint name="${prefix}drawbot_pen_joint" type="fixed">
+      <parent link="${prefix}drawbot_tool"/>
+      <child link="${prefix}drawbot_tool_pen"/>
+      <origin rpy="0 0 0" xyz="0 -0.0475 0.055"/>
+    </joint>
+    
+    <joint name="${prefix}drawbot_pen_tip_joint" type="fixed">
+      <parent link="${prefix}drawbot_tool_pen"/>
+      <child link="${prefix}drawbot_tool_pen_tip"/>
+      <origin rpy="0 0 0" xyz="0 0 0.0475"/>
+    </joint>
+
+    <link name="${prefix}drawbot_tool">
+      <visual>
+        <geometry>
+          <mesh filename="package://drawbot/meshes/visual/tool.stl"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://drawbot/meshes/collision/tool.stl"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name="${prefix}drawbot_tool_pen">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.006" length="0.09"/>
+        </geometry>
+        <material name="Cyan">
+          <color rgba="0 1.0 1.0 1.0"/>
+        </material>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.006" length="0.09"/>
+        </geometry>
+      </collision>
+    </link>
+    
+    <link name="${prefix}drawbot_tool_pen_tip">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.003" length="0.005"/>
+        </geometry>
+        <material name="Green">
+          <color rgba="0 1.0 0 1.0"/>
+        </material>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.003" length="0.005"/>
+        </geometry>
+      </collision>
+    </link>
+
+  </xacro:macro>
+</robot>
+

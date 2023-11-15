@@ -1,0 +1,5 @@
+sensor_msgs/Image image # The input image
+int32 resolution 1024 # The desired resolution of the output, default 1024
+int32 length_threshold 32 # The minimum length of a line to be included in the output (in pixels), default 32
+---
+string lines_json # The output lines in json format: [[[x1, y1], [x2, y2], ...], ...]

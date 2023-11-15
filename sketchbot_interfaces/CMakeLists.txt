@@ -14,6 +14,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 # Add custom messages and services
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/Img2Svg.srv"
   "srv/Svg2Path.srv"
   DEPENDENCIES std_msgs geometry_msgs
 )

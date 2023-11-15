@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import json
 from rembg import remove
 
 from linedraw.linedraw import sketch, makesvg, draw_lines
@@ -8,6 +9,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseArray, Pose, Quaternion
 
+from sketchbot_interfaces.srv import Img2Svg
 
 class CVPipelineService(Node):
   def __init__(self):
@@ -21,8 +23,11 @@ class CVPipelineService(Node):
 
 
   def img2svg_callback(self, request, response):
-    # Get CV2 image from ROS 2 message
+    # Convert sensor_msgs/Image to numpy array
     image = np.frombuffer(request.image.data, dtype=np.uint8).reshape(request.image.height, request.image.width, -1)
+
+    resolution = request.resolution if request.resolution > 0 else 1024
+    length_threshold = request.length_threshold if request.length_threshold > 0 else 32
 
     cropped_image = image.copy()
 
@@ -64,10 +69,9 @@ class CVPipelineService(Node):
     processed_image = remove(cropped_image)
 
     # Vectorize the image
-    lines = sketch(processed_image, draw_hatch=False, contour_simplify=1)
+    lines = sketch(processed_image, draw_hatch=False, contour_simplify=1, resolution=resolution)
 
     # Remove lines that are too short
-    length_threshold = 35
     lines = [line for line in lines if sum([((line[i][0] - line[i - 1][0]) ** 2 + (line[i][1] - line[i - 1][1]) ** 2) ** 0.5 for i in range(1, len(line))]) > length_threshold]
 
     # Display window with vectorized image
@@ -94,6 +98,6 @@ class CVPipelineService(Node):
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
-    response.lines = lines
+    response.lines_json = json.dumps(lines)
 
     return response

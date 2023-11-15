@@ -74,13 +74,13 @@ class CVPipelineService(Node):
     lines = [line for line in lines if sum([((line[i][0] - line[i - 1][0]) ** 2 + (line[i][1] - line[i - 1][1]) ** 2) ** 0.5 for i in range(1, len(line))]) > length_threshold]
 
     # Display window with vectorized image
-    draw_lines(lines)
+    # draw_lines(lines)
 
     # Create SVG from lines
     svg = makesvg(lines)
 
     # Save SVG file
-    f = open('../data/out.svg','w')
+    f = open('../../data/out.svg','w')
     f.write(svg)
     f.close()
 

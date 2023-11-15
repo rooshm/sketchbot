@@ -60,9 +60,6 @@ class CVPipelineService(Node):
     # Crop image to face
     cropped_image = cropped_image[y:y+h, x:x+w]
 
-    # Resize image to 480x480
-    cropped_image = cv2.resize(cropped_image, (1200, 1200))
-
     # Remove background
     processed_image = remove(cropped_image)
 

@@ -182,36 +182,36 @@ int main(int argc, char** argv)
   // To start, we'll create an pointer that references the current robot's state.
   // RobotState is the object that contains all the current position/velocity/acceleration data.
   // TODO: get drawing start pose
-  moveit::core::RobotStatePtr current_state = move_group.getCurrentState(10);
-  //
-  // Next get the current set of joint values for the group.
-  std::vector<double> joint_group_positions;
-  current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
+  // moveit::core::RobotStatePtr current_state = move_group.getCurrentState(10);
+  // //
+  // // Next get the current set of joint values for the group.
+  // std::vector<double> joint_group_positions;
+  // current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
 
-  // Now, let's modify one of the joints, plan to the new joint space goal, and visualize the plan.
-  joint_group_positions[0] = -1.0;  // radians
-  bool within_bounds = move_group.setJointValueTarget(joint_group_positions);
-  if (!within_bounds)
-  {
-    RCLCPP_WARN(LOGGER, "Target joint position(s) were outside of limits, but we will plan and clamp to the limits ");
-  }
+  // // Now, let's modify one of the joints, plan to the new joint space goal, and visualize the plan.
+  // joint_group_positions[0] = -1.0;  // radians
+  // bool within_bounds = move_group.setJointValueTarget(joint_group_positions);
+  // if (!within_bounds)
+  // {
+  //   RCLCPP_WARN(LOGGER, "Target joint position(s) were outside of limits, but we will plan and clamp to the limits ");
+  // }
 
-  // We lower the allowed maximum velocity and acceleration to 5% of their maximum.
-  // The default values are 10% (0.1).
-  // Set your preferred defaults in the joint_limits.yaml file of your robot's moveit_config
-  // or set explicit factors in your code if you need your robot to move faster.
-  move_group.setMaxVelocityScalingFactor(0.05);
-  move_group.setMaxAccelerationScalingFactor(0.05);
+  // // We lower the allowed maximum velocity and acceleration to 5% of their maximum.
+  // // The default values are 10% (0.1).
+  // // Set your preferred defaults in the joint_limits.yaml file of your robot's moveit_config
+  // // or set explicit factors in your code if you need your robot to move faster.
+  // move_group.setMaxVelocityScalingFactor(0.1);
+  // move_group.setMaxAccelerationScalingFactor(0.1);
 
-  success = (move_group.plan(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
-  RCLCPP_INFO(LOGGER, "Visualizing plan 2 (joint space goal) %s", success ? "" : "FAILED");
+  // success = (move_group.plan(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
+  // RCLCPP_INFO(LOGGER, "Visualizing plan 2 (joint space goal) %s", success ? "" : "FAILED");
 
-  // Visualize the plan in RViz:
-  visual_tools.deleteAllMarkers();
-  visual_tools.publishText(text_pose, "Joint_Space_Goal", rvt::WHITE, rvt::XLARGE);
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
+  // // Visualize the plan in RViz:
+  // visual_tools.deleteAllMarkers();
+  // visual_tools.publishText(text_pose, "Joint_Space_Goal", rvt::WHITE, rvt::XLARGE);
+  // visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+  // visual_tools.trigger();
+  // visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
 
   // Cartesian Paths
   // ^^^^^^^^^^^^^^^
@@ -227,22 +227,18 @@ int main(int argc, char** argv)
 
   geometry_msgs::msg::Pose target_pose3 = start_pose2;
 
-  target_pose3.position.z -= 0.1;
+  target_pose3.position.z -= 0.03;
   waypoints.push_back(target_pose3);  // down
 
-  target_pose3.position.y -= 0.1;
+  target_pose3.position.z -= 0.03;
   waypoints.push_back(target_pose3);  // right
 
-  target_pose3.position.y += 0.1;     // left
+  target_pose3.position.z -= 0.03;     // left
   waypoints.push_back(target_pose3);
 
-  // We want the Cartesian path to be interpolated at a resolution of 1 cm
-  // which is why we will specify 0.01 as the max step in Cartesian
-  // translation.  We will specify the jump threshold as 0.0, effectively disabling it.
-  // Warning - disabling the jump threshold while operating real hardware can cause
-  // large unpredictable motions of redundant joints and could be a safety issue
+  // We want the Cartesian path to be interpolated at a resolution of 0.5 cm
   moveit_msgs::msg::RobotTrajectory trajectory;
-  const double jump_threshold = 0.0;
+  const double jump_threshold = 5.0;
   const double eef_step = 0.01;
   move_group.setPlanningTime(20.0);
   double fraction = move_group.computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);

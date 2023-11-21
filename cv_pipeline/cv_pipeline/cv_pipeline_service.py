@@ -101,3 +101,17 @@ class CVPipelineService(Node):
     response.lines_json = json.dumps(lines)
 
     return response
+
+
+def main(args=None):
+  # Initialize rclpy
+  rclpy.init(args=args)
+
+  # Create service
+  cv_pipeline_service = CVPipelineService()
+
+  # Spin the service
+  rclpy.spin(cv_pipeline_service)
+
+  # Shutdown rclpy
+  rclpy.shutdown()

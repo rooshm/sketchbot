@@ -67,3 +67,17 @@ class DrawbotService(Node):
 
   def image_callback(self, msg):
     self.image = msg
+
+
+def main(args=None):
+  # Initialize rclpy
+  rclpy.init(args=args)
+
+  # Create service
+  drawbot_service = DrawbotService()
+
+  # Spin the service
+  rclpy.spin(drawbot_service)
+
+  # Shutdown rclpy
+  rclpy.shutdown()

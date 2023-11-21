@@ -19,7 +19,6 @@ setup(
   entry_points={
     'console_scripts': [
       'cv_pipeline_service = cv_pipeline.cv_pipeline_service:main',
-      'cv_pipeline_client = cv_pipeline.cv_pipeline_client:main',
     ],
   },
 )

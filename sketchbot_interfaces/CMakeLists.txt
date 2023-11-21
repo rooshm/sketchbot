@@ -17,6 +17,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Img2Svg.srv"
   "srv/Svg2Path.srv"
+  "srv/Drawbot.srv"
   DEPENDENCIES std_msgs geometry_msgs sensor_msgs
 )
 

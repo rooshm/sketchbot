@@ -36,6 +36,7 @@ def generate_launch_description():
     PythonLaunchDescriptionSource(
       PathJoinSubstitution([FindPackageShare('realsense2_camera'), 'launch', 'rs_launch.py']),
     ),
+    # TODO: add arguments?
     # launch_arguments={
     #   'align_depth': 'true',
     #   'enable_pointcloud': 'true',

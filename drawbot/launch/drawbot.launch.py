@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -28,6 +28,10 @@ def generate_launch_description():
     PythonLaunchDescriptionSource(
       PathJoinSubstitution([FindPackageShare('sketch_controller'), 'launch', 'move_group_interface_tutorial.launch.py']),
     ),
+    launch_arguments={
+      'ur_type': "ur5e",
+      'use_sim_time': "false",
+    }.items(),
     # TODO: add arguments?
   )
 
@@ -36,13 +40,11 @@ def generate_launch_description():
     PythonLaunchDescriptionSource(
       PathJoinSubstitution([FindPackageShare('realsense2_camera'), 'launch', 'rs_launch.py']),
     ),
-    # TODO: add arguments?
-    # launch_arguments={
-    #   'align_depth': 'true',
-    #   'enable_pointcloud': 'true',
-    #   'filters': 'pointcloud',
-    #   'tf_publish_rate': '0.0',
-    # }.items(),
+    launch_arguments={
+      'enable_depth': "false",
+      'tf_publish_rate': "0.0",
+      'rgb_camera.enable_auto_exposure': "false",
+    }.items(),
   )
 
   # Launch drawbot_service

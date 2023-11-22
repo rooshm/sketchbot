@@ -3,7 +3,7 @@ import numpy as np
 import json
 from rembg import remove
 
-from linedraw.linedraw import sketch, makesvg, draw_lines
+from .linedraw.linedraw import sketch, makesvg, draw_lines
 
 import rclpy
 from rclpy.node import Node

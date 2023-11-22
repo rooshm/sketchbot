@@ -14,7 +14,7 @@ class DrawbotService(Node):
 
     # Subscribe to /camera/camera/color/image_raw topic and save value
     self.image = None
-    self.create_subscription(Image, '/camera/camera/color/image_raw', self.image_callback, 10)
+    self.create_subscription(Image, '/camera/color/image_rect_raw', self.image_callback, 10)
 
     # Setup clients
     self.img2svg_cli = self.create_client(Img2Svg, '/img2svg')

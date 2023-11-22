@@ -34,7 +34,7 @@ ament_target_dependencies(sketch_controller_node
 install(TARGETS sketch_controller_node
   DESTINATION lib/${PROJECT_NAME}
 )
-install(DIRECTORY launch
+install(DIRECTORY launch cfg
   DESTINATION share/${PROJECT_NAME}
 )
 

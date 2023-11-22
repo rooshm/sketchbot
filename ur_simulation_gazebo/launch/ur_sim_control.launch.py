@@ -126,7 +126,11 @@ def launch_setup(context, *args, **kwargs):
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        arguments=[
+            "joint_state_broadcaster",
+            "--controller-manager",
+            "/controller_manager",
+        ],
     )
 
     # Delay rviz start after `joint_state_broadcaster`
@@ -169,15 +173,20 @@ def launch_setup(context, *args, **kwargs):
 
     # Delay after gazebo
     delay_after_gazebo = TimerAction(
-                        period=60.0,
-                        actions=[joint_state_broadcaster_spawner,initial_joint_controller_spawner_stopped,initial_joint_controller_spawner_started,delay_rviz_after_joint_state_broadcaster_spawner,])
+        period=60.0,
+        actions=[
+            joint_state_broadcaster_spawner,
+            initial_joint_controller_spawner_stopped,
+            initial_joint_controller_spawner_started,
+        ],
+    )
 
     nodes_to_start = [
         gazebo,
         robot_state_publisher_node,
         gazebo_spawn_robot,
         delay_after_gazebo,
-        delay_rviz_after_joint_state_broadcaster_spawner
+        delay_rviz_after_joint_state_broadcaster_spawner,
     ]
 
     return nodes_to_start

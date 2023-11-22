@@ -183,13 +183,13 @@ def launch_setup(context, *args, **kwargs):
 
     # rviz with moveit configuration
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare(moveit_config_package), "rviz", "view_robot.rviz"]
+        [FindPackageShare("sketch_controller"), "cfg", "view_robot.rviz"]
     )
     rviz_node = Node(
         package="rviz2",
         condition=IfCondition(launch_rviz),
         executable="rviz2",
-        name="rviz2_moveit",
+        name="rviz2_controller",
         output="log",
         arguments=["-d", rviz_config_file],
         parameters=[
@@ -229,7 +229,7 @@ def launch_setup(context, *args, **kwargs):
             {"use_sim_time": use_sim_time}
         ],
     )
-    nodes_to_start = [sketch_controller]
+    nodes_to_start = [sketch_controller, rviz_node]
 
     return nodes_to_start
 
@@ -243,6 +243,7 @@ def generate_launch_description():
             "ur_type",
             description="Type/series of used UR robot.",
             choices=["ur3", "ur3e", "ur5", "ur5e", "ur10", "ur10e", "ur16e", "ur20"],
+            default_value="ur5e"
         )
     )
     declared_arguments.append(
@@ -277,7 +278,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_package",
-            default_value="ur_description",
+            default_value="drawbot",
             description="Description package with robot URDF/XACRO files. Usually the argument \
         is not set, it enables use of a custom description.",
         )
@@ -285,14 +286,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_file",
-            default_value="ur.urdf.xacro",
+            default_value="drawbot_ur5e.xacro",
             description="URDF/XACRO description file with the robot.",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "moveit_config_package",
-            default_value="ur_moveit_config",
+            default_value="drawbot_moveit_config",
             description="MoveIt config package with robot SRDF/XACRO files. Usually the argument \
         is not set, it enables use of a custom moveit config.",
         )

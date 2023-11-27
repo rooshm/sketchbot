@@ -93,7 +93,7 @@ class CVPipelineService(Node):
     # # Save to files
     # cv2.imwrite('./draw_image.jpg', draw_image)
     # cv2.imwrite('./cropped_image.jpg', cropped_image)
-    # cv2.imwrite('./processed_image.jpg', processed_image)
+    cv2.imwrite('src/sketchbot/data/processed_image.jpg', processed_image)
 
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()

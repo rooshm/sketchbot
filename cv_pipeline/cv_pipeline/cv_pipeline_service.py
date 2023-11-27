@@ -47,7 +47,7 @@ class CVPipelineService(Node):
     x, y, w, h = sorted(faces, key=lambda x: x[2] * x[3], reverse=True)[0]
 
     # Draw a rectangle around the face
-    cv2.rectangle(draw_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    # cv2.rectangle(draw_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     # Increase box sizes by a percentage
     padding = 0.35
@@ -60,7 +60,7 @@ class CVPipelineService(Node):
     # Make sure the box is square
     w, h = max(w, h), max(w, h)
 
-    cv2.rectangle(draw_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+    # cv2.rectangle(draw_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
     # Crop image to face
     cropped_image = cropped_image[y:y+h, x:x+w]
@@ -81,7 +81,7 @@ class CVPipelineService(Node):
     svg = makesvg(lines)
 
     # Save SVG file
-    f = open('../../data/out.svg','w')
+    f = open('src/sketchbot/data/out.svg','w')
     f.write(svg)
     f.close()
 

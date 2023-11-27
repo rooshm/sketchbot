@@ -1,8 +1,12 @@
+import asyncio
+import threading
+
+import numpy as np
 import rclpy
+from PIL import Image as PILImage
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-
-from sketchbot_interfaces.srv import Img2Svg, Svg2Path, Drawbot
+from sketchbot_interfaces.srv import Drawbot, Img2Svg, Svg2Path
 
 
 class DrawbotService(Node):
@@ -14,6 +18,18 @@ class DrawbotService(Node):
 
     # Subscribe to /camera/camera/color/image_raw topic and save value
     self.image = None
+
+    # Load image from file
+    # img = PILImage.open('src/sketchbot/data/test.jpg')
+    # img = img.resize((640, 480))
+
+    # self.image = Image()
+    # self.image.header.frame_id = 'camera'
+    # self.image.height = 480
+    # self.image.width = 640
+    # self.image.encoding = 'rgb8'
+    # self.image.data = np.asarray(img).tobytes()
+
     self.create_subscription(Image, '/camera/color/image_rect_raw', self.image_callback, 10)
 
     # Setup clients
@@ -28,14 +44,36 @@ class DrawbotService(Node):
 
 
   def drawbot_callback(self, request, response):
+    threading.Thread(target=self.threaded_drawbot_request, args=(request, response)).start()
+    return response
+
+
+  def threaded_drawbot_request(self, request, response):
+    # Create a new event loop for the thread
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # Now you can run the async method in this loop
+    loop.run_until_complete(self.handle_drawbot_request(request, response))
+    loop.close()
+
+
+  async def handle_drawbot_request(self, request, response):
+    if self.image is None:
+      self.get_logger().info('No image received')
+      return response
+
+    self.get_logger().info('Took image, sending to img2svg service')
+
     # Send image to img2svg service
     req = Img2Svg.Request()
     req.image = self.image
     req.resolution = 1024
     req.length_threshold = 32
 
+    self.get_logger().info('Calling img2svg service')
     img2svg_future = self.img2svg_cli.call_async(req)
-    rclpy.spin_until_future_complete(self, img2svg_future)
+    await img2svg_future
 
     if img2svg_future.result() is None:
       self.get_logger().info('Service call failed %r' % (img2svg_future.exception(),))
@@ -44,16 +82,19 @@ class DrawbotService(Node):
     # Get vector lines from img2svg service
     lines_json = img2svg_future.result().lines_json
 
+    self.get_logger().info('Got lines from img2svg service, sending to svg2path service')
+
     # Send vector lines to svg2path service
     req = Svg2Path.Request()
     # req.lines_json = lines_json
-    req.file_path = '../../data/out.svg'
+    req.file_path = 'src/sketchbot/data/out.svg'
     req.save_dist = -0.1
     req.scale = 0.001
     req.square_path = True
 
+    self.get_logger().info('Calling svg2path service')
     svg2path_future = self.svg2path_cli.call_async(req)
-    rclpy.spin_until_future_complete(self, svg2path_future)
+    await svg2path_future
 
     if svg2path_future.result() is None:
       self.get_logger().info('Service call failed %r' % (svg2path_future.exception(),))
@@ -61,6 +102,8 @@ class DrawbotService(Node):
 
     # Get path from svg2path service
     path = svg2path_future.result().path
+
+    self.get_logger().info('Got path from svg2path service, sending to controller service')
 
     # TODO: call controller service with path
 

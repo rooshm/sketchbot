@@ -1,24 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="https://ros.org/wiki/xacro">
   <xacro:macro name="drawbot_tool" params="prefix connected_to">
-      
+
     <joint name="${prefix}drawbot_joint" type="fixed">
       <parent link="${connected_to}"/>
       <child link="${prefix}drawbot_tool"/>
       <origin rpy="3.14 3.14 0" xyz="0 0 -0.02"/>
     </joint>
-    
+
     <joint name="${prefix}drawbot_pen_joint" type="fixed">
       <parent link="${prefix}drawbot_tool"/>
       <child link="${prefix}drawbot_tool_pen"/>
       <origin rpy="0 0 0" xyz="0 -0.0475 0.055"/>
     </joint>
-    
+
     <joint name="${prefix}drawbot_pen_tip_joint" type="fixed">
       <parent link="${prefix}drawbot_tool_pen"/>
       <child link="${prefix}drawbot_tool_pen_tip"/>
       <origin rpy="0 0 0" xyz="0 0 0.0475"/>
     </joint>
+
+    <!-- Define the draw board fixed frame with respect to the robot base -->
+    <joint name="${prefix}draw_board_fixed_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}draw_board"/>
+      <origin rpy="3.14 0 1.57" xyz="-0.554 0.308 0.025"/>
+    </joint>
+
+    <link name="${prefix}draw_board">
+      <origin xyz="-0.554 0.308 0.025"/>
+    </link>
 
     <link name="${prefix}drawbot_tool">
       <visual>
@@ -51,7 +62,7 @@
         </geometry>
       </collision>
     </link>
-    
+
     <link name="${prefix}drawbot_tool_pen_tip">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>

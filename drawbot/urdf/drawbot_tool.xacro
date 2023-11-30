@@ -17,7 +17,7 @@
     <joint name="${prefix}drawbot_pen_tip_joint" type="fixed">
       <parent link="${prefix}drawbot_tool_pen"/>
       <child link="${prefix}drawbot_tool_pen_tip"/>
-      <origin rpy="0 0 0" xyz="0 0 0.0475"/>
+      <origin rpy="0 0 3.14" xyz="0 0 0.0475"/>
     </joint>
 
     <!-- Define the draw board fixed frame with respect to the robot base -->

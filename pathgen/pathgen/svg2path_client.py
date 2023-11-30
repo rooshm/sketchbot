@@ -31,11 +31,11 @@ class svg2PathClient(Node):
         install_dir = get_package_prefix('pathgen')
 
         # Path is required in service request
-        self.req.file_path = os.path.join(install_dir, '../../data/out.svg')
+        self.req.file_path = os.path.join(install_dir, '../../src/sketchbot/data/out.svg')
 
         # Optional parameters for service request as default values are set in service definition
         self.req.save_dist = -0.1 # -ve z-value as /draw_board z-axis is pointing down into the table.
-        self.req.scale = 0.01
+        self.req.scale = 0.000175
         self.req.square_path = True
 
         self.future = self.cli.call_async(self.req)

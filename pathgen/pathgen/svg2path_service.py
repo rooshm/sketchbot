@@ -30,7 +30,7 @@ class svg2path():
         square_path (bool): if True, the air path between draw segments is a square, instead of triangular. Default: True
     """
 
-    def __init__(self, svg_path:str, save_dist:float=0.1, pix_scale:float=0.001, square_path:bool=True):
+    def __init__(self, svg_path:str, save_dist:float=0.1, pix_scale:float=0.000175, square_path:bool=True):
         """Constructor method"""
 
         # Save parameters to class variables
@@ -199,7 +199,20 @@ class svg2PathService(Node):
         """Constructor method"""
 
         super().__init__('svg2path_service')
+
+        # Create service
         self.srv = self.create_service(Svg2Path, '/svg2path', self.svg2path_callback)
+
+        # Publisher for path visualization
+        self.path_pub = self.create_publisher(PoseArray, '/draw_path', 10)
+
+        # Create a timer to publish path at 0.2 Hz
+        self.timer_period = 0.2 # Hz
+        self.timer = self.create_timer(self.timer_period, self.timer_callback)
+
+        # Initialize path message
+        self.path_msg = PoseArray()
+        self.path_msg.header.frame_id = "/draw_board"
 
     def svg2path_callback(self, request, response):
         """Service callback function"""
@@ -223,13 +236,8 @@ class svg2PathService(Node):
         quat.z = 0.0
         quat.w = 1.0
 
-        # Create PoseArray message
-        # Creating a new message object each time, to avoid appending to previous message
-        self.path_msg = PoseArray()
-
-        # The entire path is defined in the drawing board frame.
-        # The /draw_board is defined as the frame on top-left corner of the drawing board with z-axis pointing down.
-        self.path_msg.header.frame_id = "/draw_board"
+        # Clear the existing poses
+        self.path_msg.poses.clear()
 
         # Append poses to PoseArray message
         for i in range(len(pathCreate.complete_path)):
@@ -247,12 +255,18 @@ class svg2PathService(Node):
         # Set response success flag if path is not empty
         if len(response.path.poses) > 0:
             response.success = True
-            self.get_logger().info('Path generated successfully')
+            self.get_logger().info('Path generated successfully with %d points' % len(response.path.poses))
         else:
             response.success = False
             self.get_logger().info('Path generation failed')
 
         return response
+
+    def timer_callback(self):
+        """Timer callback function"""
+
+        # Publish path
+        self.path_pub.publish(self.path_msg)
 
 
 def main(args=None):

@@ -37,6 +37,7 @@ class DrawbotService(Node):
     self.move2state_cli = self.create_client(Move2State, '/move2state')
     self.img2svg_cli = self.create_client(Img2Svg, '/img2svg')
     self.svg2path_cli = self.create_client(Svg2Path, '/svg2path')
+    self.getdrawtraj_cli = self.create_client(GetCartesianPath, '/compute_cartesian_path')
 
     while not self.getstate_cli.wait_for_service(timeout_sec=1.0):
       self.get_logger().info('getstate_cli service not available, waiting...')
@@ -49,6 +50,9 @@ class DrawbotService(Node):
 
     while not self.svg2path_cli.wait_for_service(timeout_sec=1.0):
       self.get_logger().info('svg2path service not available, waiting...')
+    
+    while not self.getdrawtraj_cli.wait_for_service(timeout_sec=1.0):
+      self.get_logger().info('compute_cartesian_path service not available, waiting...')
 
 
   def drawbot_callback(self, request, response):
@@ -118,7 +122,7 @@ class DrawbotService(Node):
     req = Svg2Path.Request()
     # req.lines_json = lines_json
     req.file_path = 'src/sketchbot/data/out.svg'
-    req.save_dist = -0.25 # m safe distance from table
+    req.save_dist = -0.025 # m safe distance from table
     req.scale = 0.000175 # Converts 1024px to 18cm
     req.square_path = True
 
@@ -131,11 +135,48 @@ class DrawbotService(Node):
       return
 
     # Get path from svg2path service
-    path = svg2path_future.result().path
+    path_pose_array = svg2path_future.result().path
 
-    self.get_logger().info('Got path from svg2path service, sending to controller service')
+    self.get_logger().info(f'Got path from svg2path service {path_pose_array.poses.size} going to start draw')
 
-    # TODO: call controller service with path
+    req = GetRobotStateFromWarehouse.Request()
+    req.name = "start_draw"
+    req.robot = "ur"
+    self.get_logger().info(f'Calling service to get robot state {req.name}')
+    getstate_future = self.getstate_cli.call_async(req)
+    await getstate_future
+
+    if getstate_future.result() is None:
+      self.get_logger().info('Service call failed %r' % (getstate_future.exception(),))
+      return
+
+    self.get_logger().warn(f'Got robot state {getstate_future.result().state.joint_state}')
+    req = Move2State.Request()
+    req.goal_state = getstate_future.result().state
+    curr_state = req.goal_state
+    self.get_logger().info('Move to start draw')
+    move2state_future = self.move2state_cli.call_async(req)
+    await move2state_future
+
+    if move2state_future.result() is None or move2state_future.result().state is False:
+      self.get_logger().info('Service call failed %r' % (move2state_future.exception(),))
+      return
+
+    self.get_logger().info('Compute cartesian path')
+    req = GetCartesianPath.Request()
+    req.header = path_pose_array.header
+    req.start_state = curr_state
+    req.link_name = "drawbot_tool_pen_tip"
+    req.max_step = 0.01
+    req.avoid_collisions = True
+    req.waypoints = path_pose_array.poses
+    getdrawtraj_future = self.getdrawtraj_cli.call_async(req)
+    await getdrawtraj_future
+
+    if getdrawtraj_future.result() is None:
+      self.get_logger().info('Service call failed %r' % (getdrawtraj_future.exception(),))
+      return
+    self.get_logger().info(f'Fraction of cartesian path successfully planned {getdrawtraj_future.result().fraction} \n Error Code {getdrawtraj_future.result().fraction}')
 
 
   def image_callback(self, msg):

@@ -1,14 +1,20 @@
 #include <chrono>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 
 #include <moveit_msgs/msg/display_robot_state.hpp>
 #include <moveit_msgs/msg/display_trajectory.hpp>
 
 #include <moveit_msgs/msg/attached_collision_object.hpp>
 #include <moveit_msgs/msg/collision_object.hpp>
+#include <moveit_msgs/msg/robot_trajectory.hpp>
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include <sketchbot_interfaces/srv/move2_state.hpp>
+#include <sketchbot_interfaces/srv/move2_pose.hpp>
+#include <sketchbot_interfaces/srv/follow_path.hpp>
 
 // All source files that use ROS logging should define a file-specific
 // static const rclcpp::Logger named LOGGER, located at the top of the file
@@ -42,7 +48,72 @@ bool move2state(const std::shared_ptr<sketchbot_interfaces::srv::Move2State::Req
 
   if (success)
   {
-    bool execute_success = (move_group->move() == moveit::core::MoveItErrorCode::SUCCESS);
+    bool execute_success = (move_group->execute(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
+    RCLCPP_INFO(LOGGER, "Trying to execute %s", execute_success ? "" : "FAILED");
+    success = execute_success;
+  }
+
+  return (response->state = success);
+}
+
+bool move2pose(const std::shared_ptr<sketchbot_interfaces::srv::Move2Pose::Request> request,
+                const std::shared_ptr<sketchbot_interfaces::srv::Move2Pose::Response> response, 
+                const std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group,
+                const std::shared_ptr<moveit_visual_tools::MoveItVisualTools> visual_tools, 
+                const moveit::core::JointModelGroup* joint_model_group)
+{
+  move_group->setStartStateToCurrentState();
+  move_group->setPoseTarget(request->goal_state);
+  move_group->setMaxVelocityScalingFactor(0.1);
+  move_group->setMaxAccelerationScalingFactor(0.1);
+  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+
+  bool success = (move_group->plan(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
+  RCLCPP_INFO(LOGGER, "Plan to pose %s", success ? "" : "FAILED");
+
+  visual_tools->deleteAllMarkers();
+  visual_tools->publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+  visual_tools->trigger();
+  rclcpp::sleep_for(std::chrono::seconds(5));
+
+  if (success)
+  {
+    bool execute_success = (move_group->execute(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
+    RCLCPP_INFO(LOGGER, "Trying to execute %s", execute_success ? "" : "FAILED");
+    success = execute_success;
+  }
+
+  return (response->state = success);
+}
+
+bool followpath(const std::shared_ptr<sketchbot_interfaces::srv::FollowPath::Request> request,
+                const std::shared_ptr<sketchbot_interfaces::srv::FollowPath::Response> response, 
+                const std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group,
+                const std::shared_ptr<moveit_visual_tools::MoveItVisualTools> visual_tools, 
+                const moveit::core::JointModelGroup* joint_model_group)
+{
+  move_group->setStartStateToCurrentState();
+  if (request->robot_trajectory.joint_trajectory.header.frame_id == "")
+  {
+    RCLCPP_WARN(LOGGER, "No frame id, malformed joint state");
+    return false;
+  }
+
+  robot_trajectory::RobotTrajectory rt(move_group->getCurrentState()->getRobotModel(), "ur_manipulator");
+  rt.setRobotTrajectoryMsg(*move_group->getCurrentState(), request->robot_trajectory);
+ 
+  moveit_msgs::msg::RobotTrajectory trajectory_msg;
+  trajectory_processing::TimeOptimalTrajectoryGeneration totg;
+  bool success = totg.computeTimeStamps(rt, 0.1, 0.1);
+  rt.getRobotTrajectoryMsg(trajectory_msg);
+  RCLCPP_INFO_STREAM(LOGGER, "Parameterized trajectory length: " << trajectory_msg.joint_trajectory.points.size());
+  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+  rclcpp::sleep_for(std::chrono::seconds(5));
+  my_plan.trajectory_ = trajectory_msg;
+
+  if (success)
+  {
+    bool execute_success = (move_group->execute(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
     RCLCPP_INFO(LOGGER, "Trying to execute %s", execute_success ? "" : "FAILED");
     success = execute_success;
   }

@@ -20,6 +20,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Svg2Path.srv"
   "srv/Drawbot.srv"
   "srv/Move2State.srv"
+  "srv/Move2Pose.srv"
+  "srv/FollowPath.srv"
   DEPENDENCIES std_msgs geometry_msgs sensor_msgs moveit_msgs
 )
 

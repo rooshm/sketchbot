@@ -1,6 +1,6 @@
 string file_path
-float64 save_dist -0.1 # -0.1m default as z-axis is pointing down
-float64 scale 0.001 # 0.001m default 1px = 1mm
+float64 save_dist -0.25 # -0.25m default as z-axis is pointing down
+float64 scale 0.000175 # 0.000175m default 1024px = 18cm max length of draw area
 bool square_path True # True default to make a square path air path
 ---
 geometry_msgs/PoseArray path

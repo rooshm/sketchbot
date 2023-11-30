@@ -118,8 +118,8 @@ class DrawbotService(Node):
     req = Svg2Path.Request()
     # req.lines_json = lines_json
     req.file_path = 'src/sketchbot/data/out.svg'
-    req.save_dist = -0.1
-    req.scale = 0.001
+    req.save_dist = -0.25 # m safe distance from table
+    req.scale = 0.000175 # Converts 1024px to 18cm
     req.square_path = True
 
     self.get_logger().info('Calling svg2path service')

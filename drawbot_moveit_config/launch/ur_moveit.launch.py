@@ -193,6 +193,15 @@ def launch_setup(context, *args, **kwargs):
         "warehouse_host": warehouse_sqlite_path,
     }
 
+    warehouse_server_node = Node(
+        package="moveit_ros_warehouse",
+        executable="moveit_warehouse_services",
+        output="screen",
+        parameters=[
+            warehouse_ros_config,
+        ]
+    )
+
     # Start the actual move_group node/action server
     move_group_node = Node(
         package="moveit_ros_move_group",
@@ -248,7 +257,7 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
-    nodes_to_start = [move_group_node, rviz_node, servo_node]
+    nodes_to_start = [warehouse_server_node, move_group_node, rviz_node, servo_node]
 
     return nodes_to_start
 

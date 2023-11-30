@@ -21,13 +21,14 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_geometry_msgs
   tf2_geometry_msgs
   tf2_ros
+  sketchbot_interfaces
 )
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS})
 
-add_executable(sketch_controller_node src/move_group_interface_tutorial.cpp)
+add_executable(sketch_controller_node src/sketch_control_server.cpp)
 ament_target_dependencies(sketch_controller_node
     ${THIS_PACKAGE_INCLUDE_DEPENDS})
 

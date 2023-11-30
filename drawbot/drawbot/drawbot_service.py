@@ -6,8 +6,8 @@ import rclpy
 from PIL import Image as PILImage
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from sketchbot_interfaces.srv import Drawbot, Img2Svg, Svg2Path
-
+from sketchbot_interfaces.srv import Drawbot, Img2Svg, Svg2Path, Move2State
+from moveit_msgs.srv import GetRobotStateFromWarehouse, GetCartesianPath, ListRobotStatesInWarehouse
 
 class DrawbotService(Node):
   def __init__(self):
@@ -30,11 +30,19 @@ class DrawbotService(Node):
     # self.image.encoding = 'rgb8'
     # self.image.data = np.asarray(img).tobytes()
 
-    self.create_subscription(Image, '/camera/color/image_rect_raw', self.image_callback, 10)
+    self.create_subscription(Image, '/camera/color/image_raw', self.image_callback, 10)
 
     # Setup clients
+    self.getstate_cli = self.create_client(GetRobotStateFromWarehouse, '/get_robot_state')
+    self.move2state_cli = self.create_client(Move2State, '/move2state')
     self.img2svg_cli = self.create_client(Img2Svg, '/img2svg')
     self.svg2path_cli = self.create_client(Svg2Path, '/svg2path')
+
+    while not self.getstate_cli.wait_for_service(timeout_sec=1.0):
+      self.get_logger().info('getstate_cli service not available, waiting...')
+
+    while not self.move2state_cli.wait_for_service(timeout_sec=1.0):
+      self.get_logger().info('move2state_cli service not available, waiting...')
 
     while not self.img2svg_cli.wait_for_service(timeout_sec=1.0):
       self.get_logger().info('img2svg service not available, waiting...')
@@ -59,9 +67,31 @@ class DrawbotService(Node):
 
 
   async def handle_drawbot_request(self, request, response):
+    req = GetRobotStateFromWarehouse.Request()
+    req.name = "say_cheese"
+    req.robot = "ur"
+    self.get_logger().info(f'Calling service to get robot state {req.name}')
+    getstate_future = self.getstate_cli.call_async(req)
+    await getstate_future
+
+    if getstate_future.result() is None:
+      self.get_logger().info('Service call failed %r' % (getstate_future.exception(),))
+      return
+
+    self.get_logger().warn(f'Got robot state {getstate_future.result().state.joint_state}')
+    req = Move2State.Request()
+    req.goal_state = getstate_future.result().state
+    self.get_logger().info('Move to state')
+    move2state_future = self.move2state_cli.call_async(req)
+    await move2state_future
+
+    if move2state_future.result() is None:
+      self.get_logger().info('Service call failed %r' % (move2state_future.exception(),))
+      return
+
     if self.image is None:
       self.get_logger().info('No image received')
-      return response
+      return
 
     self.get_logger().info('Took image, sending to img2svg service')
 

@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(moveit_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 # Add custom messages and services
@@ -18,7 +19,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Img2Svg.srv"
   "srv/Svg2Path.srv"
   "srv/Drawbot.srv"
-  DEPENDENCIES std_msgs geometry_msgs sensor_msgs
+  "srv/Move2State.srv"
+  DEPENDENCIES std_msgs geometry_msgs sensor_msgs moveit_msgs
 )
 
 if(BUILD_TESTING)

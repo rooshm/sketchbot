@@ -26,7 +26,7 @@ def generate_launch_description():
   # Include controller launch file
   sketch_controller = IncludeLaunchDescription(
     PythonLaunchDescriptionSource(
-      PathJoinSubstitution([FindPackageShare('sketch_controller'), 'launch', 'move_group_interface_tutorial.launch.py']),
+      PathJoinSubstitution([FindPackageShare('sketch_controller'), 'launch', 'sketch_controller.launch.py']),
     ),
     launch_arguments={
       'ur_type': "ur5e",

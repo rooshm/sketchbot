@@ -46,11 +46,14 @@ bool move2state(const std::shared_ptr<sketchbot_interfaces::srv::Move2State::Req
   visual_tools->trigger();
   rclcpp::sleep_for(std::chrono::seconds(5));
 
-  if (success)
+  int retry = 3;
+  bool execute_success = false;
+  while (!execute_success && retry > 0)
   {
-    bool execute_success = (move_group->execute(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
-    RCLCPP_INFO(LOGGER, "Trying to execute %s", execute_success ? "" : "FAILED");
+    bool execute_success = (move_group->move() == moveit::core::MoveItErrorCode::SUCCESS);
+    RCLCPP_INFO(LOGGER, "Try %d to execute %s", retry, execute_success ? "" : "FAILED");
     success = execute_success;
+    retry--;
   }
 
   return (response->state = success);
@@ -76,11 +79,14 @@ bool move2pose(const std::shared_ptr<sketchbot_interfaces::srv::Move2Pose::Reque
   visual_tools->trigger();
   rclcpp::sleep_for(std::chrono::seconds(5));
 
-  if (success)
+  int retry = 3;
+  bool execute_success = false;
+  while (!execute_success && retry > 0)
   {
-    bool execute_success = (move_group->execute(my_plan) == moveit::core::MoveItErrorCode::SUCCESS);
+    execute_success = (move_group->move() == moveit::core::MoveItErrorCode::SUCCESS);
     RCLCPP_INFO(LOGGER, "Trying to execute %s", execute_success ? "" : "FAILED");
     success = execute_success;
+    retry--;
   }
 
   return (response->state = success);
@@ -190,6 +196,16 @@ int main(int argc, char **argv)
 
   auto move2state_server =
       move_group_node->create_service<sketchbot_interfaces::srv::Move2State>("move2state", move2state_cb);
+
+  auto move2pose_cb =
+      [&](const std::shared_ptr<sketchbot_interfaces::srv::Move2Pose::Request>& request,
+          const std::shared_ptr<sketchbot_interfaces::srv::Move2Pose::Response>& response) -> bool {
+    return move2pose(request, response, move_group, visual_tools, joint_model_group);
+  };
+
+  auto move2pose_server =
+      move_group_node->create_service<sketchbot_interfaces::srv::Move2Pose>("move2pose", move2pose_cb);
+
   visual_tools->deleteAllMarkers();
   visual_tools->trigger();
 

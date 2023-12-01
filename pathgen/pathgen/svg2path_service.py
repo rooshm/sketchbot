@@ -212,7 +212,7 @@ class svg2PathService(Node):
 
         # Initialize path message
         self.path_msg = PoseArray()
-        self.path_msg.header.frame_id = "/draw_board"
+        self.path_msg.header.frame_id = "draw_board"
 
     def svg2path_callback(self, request, response):
         """Service callback function"""

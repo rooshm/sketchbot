@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseArray, Pose, Quaternion
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+from tf2_geometry_msgs import do_transform_pose, TransformStamped
 
 # Import custom service
 from sketchbot_interfaces.srv import Svg2Path
@@ -212,7 +215,11 @@ class svg2PathService(Node):
 
         # Initialize path message
         self.path_msg = PoseArray()
-        self.path_msg.header.frame_id = "draw_board"
+
+        # Initialize tf2 buffer and listener
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.transform = TransformStamped()
 
     def svg2path_callback(self, request, response):
         """Service callback function"""
@@ -239,6 +246,25 @@ class svg2PathService(Node):
         # Clear the existing poses
         self.path_msg.poses.clear()
 
+        # Lookup transform from draw_board to world frame
+        try:
+            self.transform = self.tf_buffer.lookup_transform("world", "draw_board", rclpy.time.Time())
+            # Set the PoseArray frame_id to world
+            self.path_msg.header.frame_id = "world"
+        except:
+            self.get_logger().info('Could not lookup transform from draw_board to world frame')
+            # Set transform to identity
+            self.transform.transform.translation.x = 0.0
+            self.transform.transform.translation.y = 0.0
+            self.transform.transform.translation.z = 0.0
+            self.transform.transform.rotation.x = 0.0
+            self.transform.transform.rotation.y = 0.0
+            self.transform.transform.rotation.z = 0.0
+            self.transform.transform.rotation.w = 1.0
+
+            # Set the PoseArray frame_id to draw_board
+            self.path_msg.header.frame_id = "draw_board"
+
         # Append poses to PoseArray message
         for i in range(len(pathCreate.complete_path)):
             for j in range(len(pathCreate.complete_path[i])):
@@ -247,6 +273,9 @@ class svg2PathService(Node):
                 pose.position.y = pathCreate.complete_path[i][j][1]
                 pose.position.z = pathCreate.complete_path[i][j][2]
                 pose.orientation = quat
+
+                # Transform pose to world frame using tf2
+                pose = do_transform_pose(pose, self.transform)
                 self.path_msg.poses.append(pose)
 
         # Save path to response
@@ -255,7 +284,7 @@ class svg2PathService(Node):
         # Set response success flag if path is not empty
         if len(response.path.poses) > 0:
             response.success = True
-            self.get_logger().info('Path generated successfully with %d points' % len(response.path.poses))
+            self.get_logger().info('Path generated successfully with %d way-points' % len(response.path.poses))
         else:
             response.success = False
             self.get_logger().info('Path generation failed')

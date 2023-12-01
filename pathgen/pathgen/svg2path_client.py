@@ -96,7 +96,7 @@ def main(args=None):
             else:
                 if response.success:
                     client.get_logger().info("Path received")
-                    client.plot_path(response.path, is_scatter=True)
+                    # client.plot_path(response.path, is_scatter=True)
                 else:
                     client.get_logger().info("Path empty")
             break

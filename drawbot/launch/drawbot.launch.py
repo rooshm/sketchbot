@@ -43,7 +43,7 @@ def generate_launch_description():
     launch_arguments={
       'enable_depth': "false",
       'tf_publish_rate': "0.0",
-      'rgb_camera.enable_auto_exposure': "false",
+      'rgb_camera.enable_auto_exposure': "true",
     }.items(),
   )
 

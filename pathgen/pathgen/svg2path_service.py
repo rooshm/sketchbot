@@ -215,6 +215,7 @@ class svg2PathService(Node):
 
         # Initialize path message
         self.path_msg = PoseArray()
+        self.path_msg.header.frame_id = "draw_board"
 
         # Initialize tf2 buffer and listener
         self.tf_buffer = Buffer()
@@ -238,9 +239,9 @@ class svg2PathService(Node):
 
         # Constant orientation for all points
         quat = Quaternion()
-        quat.x = 0.0
-        quat.y = 0.0
-        quat.z = 0.0
+        quat.x = 1e-6
+        quat.y = 1e-6
+        quat.z = 1e-6
         quat.w = 1.0
 
         # Clear the existing poses

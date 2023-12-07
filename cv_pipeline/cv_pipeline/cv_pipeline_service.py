@@ -69,13 +69,13 @@ class CVPipelineService(Node):
     processed_image = remove(cropped_image)
 
     # Vectorize the image
-    lines = sketch(processed_image, draw_hatch=False, contour_simplify=1, resolution=resolution)
+    lines = sketch(processed_image, draw_hatch=False, contour_simplify=2, resolution=resolution)
 
     # Remove lines that are too short
     lines = [line for line in lines if sum([((line[i][0] - line[i - 1][0]) ** 2 + (line[i][1] - line[i - 1][1]) ** 2) ** 0.5 for i in range(1, len(line))]) > length_threshold]
 
     # Display window with vectorized image
-    # draw_lines(lines)
+    draw_lines(lines)
 
     # Create SVG from lines
     svg = makesvg(lines)

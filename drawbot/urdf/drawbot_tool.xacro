@@ -24,11 +24,11 @@
     <joint name="${prefix}draw_board_fixed_joint" type="fixed">
       <parent link="${prefix}base_link"/>
       <child link="${prefix}draw_board"/>
-      <origin rpy="3.14 0 1.57" xyz="-0.554 0.308 0.025"/>
+      <origin rpy="3.14 0 0.785" xyz="-0.554 0.308 0.0095"/>
     </joint>
 
     <link name="${prefix}draw_board">
-      <origin xyz="-0.554 0.308 0.025"/>
+      <origin xyz="-0.554 0.308 0.0095"/>
     </link>
 
     <link name="${prefix}drawbot_tool">

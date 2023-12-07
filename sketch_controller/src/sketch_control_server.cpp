@@ -138,7 +138,7 @@ bool followpath(const std::shared_ptr<sketchbot_interfaces::srv::FollowPath::Req
   rt.getRobotTrajectoryMsg(trajectory_msg);
   RCLCPP_INFO_STREAM(LOGGER, "Parameterized trajectory length: " << trajectory_msg.joint_trajectory.points.size());
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-  rclcpp::sleep_for(std::chrono::seconds(30));
+  rclcpp::sleep_for(std::chrono::seconds(10));
   my_plan.trajectory_ = trajectory_msg;
 
   if (success)

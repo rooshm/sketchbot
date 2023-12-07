@@ -107,38 +107,38 @@ class DrawbotService(Node):
       self.get_logger().info('Service call failed %r' % (move2state_future.exception(),))
       return
 
-    # if self.image is None:
-    #   self.get_logger().info('No image received')
-    #   return
+    if self.image is None:
+      self.get_logger().info('No image received')
+      return
 
-    # self.get_logger().info('Took image, sending to img2svg service')
+    self.get_logger().info('Took image, sending to img2svg service')
 
-    # # Send image to img2svg service
-    # req = Img2Svg.Request()
-    # req.image = self.image
-    # req.resolution = 1024
-    # req.length_threshold = 32
+    # Send image to img2svg service
+    req = Img2Svg.Request()
+    req.image = self.image
+    req.resolution = 1024
+    req.length_threshold = 32
 
-    # self.get_logger().info('Calling img2svg service')
-    # img2svg_future = self.img2svg_cli.call_async(req)
-    # await img2svg_future
+    self.get_logger().info('Calling img2svg service')
+    img2svg_future = self.img2svg_cli.call_async(req)
+    await img2svg_future
 
-    # if img2svg_future.result() is None:
-    #   self.get_logger().info('Service call failed %r' % (img2svg_future.exception(),))
-    #   return
+    if img2svg_future.result() is None:
+      self.get_logger().info('Service call failed %r' % (img2svg_future.exception(),))
+      return
 
-    # # Get vector lines from img2svg service
-    # lines_json = img2svg_future.result().lines_json
+    # Get vector lines from img2svg service
+    lines_json = img2svg_future.result().lines_json
 
-    # self.get_logger().info('Got lines from img2svg service, sending to svg2path service')
+    self.get_logger().info('Got lines from img2svg service, sending to svg2path service')
 
     # Send vector lines to svg2path service
     req = Svg2Path.Request()
     # req.lines_json = lines_json
     req.file_path = 'src/sketchbot/data/out.svg'
     req.save_dist = -0.025 # m safe distance from table
-    req.scale = 0.000175 # Converts 1024px to 18cm
-    req.square_path = True
+    req.scale =  0.00035  # Converts 1024px to 18cm
+    req.square_path = False
 
     self.get_logger().info('Calling svg2path service')
     svg2path_future = self.svg2path_cli.call_async(req)
@@ -154,7 +154,7 @@ class DrawbotService(Node):
     self.get_logger().info(f'Got path from svg2path service {len(path_pose_array.poses)} going to start draw')
 
     req = GetRobotStateFromWarehouse.Request()
-    req.name = "start_draw"
+    req.name = "start_draw2"
     req.robot = "ur"
     self.get_logger().info(f'Calling service to get robot state {req.name}')
     getstate_future = self.getstate_cli.call_async(req)
@@ -219,6 +219,27 @@ class DrawbotService(Node):
       self.get_logger().info('Service call failed %r' % (movecartesian_future.exception(),))
       return
 
+    req = GetRobotStateFromWarehouse.Request()
+    req.name = "say_cheese"
+    req.robot = "ur"
+    self.get_logger().info(f'Calling service to get robot state {req.name}')
+    getstate_future = self.getstate_cli.call_async(req)
+    await getstate_future
+
+    if getstate_future.result() is None:
+      self.get_logger().info('Service call failed %r' % (getstate_future.exception(),))
+      return
+    
+    self.get_logger().warn(f'Got robot state {getstate_future.result().state.joint_state}')
+    req = Move2State.Request()
+    req.goal_state = getstate_future.result().state
+    self.get_logger().info('Move to state')
+    move2state_future = self.move2state_cli.call_async(req)
+    await move2state_future
+
+    if move2state_future.result() is None or move2state_future.result().state is False:
+      self.get_logger().info('Service call failed %r' % (move2state_future.exception(),))
+      return
 
 
   def image_callback(self, msg):

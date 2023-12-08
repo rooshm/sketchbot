@@ -35,8 +35,9 @@ class svg2PathClient(Node):
 
         # Optional parameters for service request as default values are set in service definition
         self.req.save_dist = -0.1 # -ve z-value as /draw_board z-axis is pointing down into the table.
-        self.req.scale = 0.000175
+        self.req.scale = 0.00035
         self.req.square_path = True
+        self.req.add_sign = True
 
         self.future = self.cli.call_async(self.req)
 

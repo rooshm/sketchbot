@@ -2,6 +2,7 @@ string file_path
 float64 save_dist -0.025 # -0.025m default as z-axis is pointing down
 float64 scale 0.000175 # 0.000175m default 1024px = 18cm max length of draw area
 bool square_path True # True default to make a square path air path
+bool add_sign True # True default to add the robot signature to the end of the path
 ---
 geometry_msgs/PoseArray path
 bool success

@@ -31,9 +31,10 @@ class svg2path():
         save_dist (float): distance for pen to raise between draw segments (in m)
         pix_scale (float): scale factor to convert svg pixels to meters (in m)
         square_path (bool): if True, the air path between draw segments is a square, instead of triangular. Default: True
+        add_sign (bool): if True, adds the robot signature to the end of the path. Default: True
     """
 
-    def __init__(self, svg_path:str, save_dist:float=0.1, pix_scale:float=0.000175, square_path:bool=True):
+    def __init__(self, svg_path:str, save_dist:float=-0.1, pix_scale:float=0.000175, square_path:bool=True, add_sign:bool=True):
         """Constructor method"""
 
         # Save parameters to class variables
@@ -41,11 +42,13 @@ class svg2path():
         self.save_dist = save_dist
         self.pix_scale = pix_scale
         self.square_path = square_path
+        self.add_sign = add_sign
 
         # Storage lists
         self.lines = []
         self.draw_path = []
         self.air_path = []
+        self.signature_path = []
         self.complete_path = []
 
         # Parse svg file to extract points
@@ -69,6 +72,34 @@ class svg2path():
             for j in range(len(self.lines)):
                 if i != j:
                     self.dist_mat[i, j] = np.linalg.norm(np.array(self.lines[i][-1]) - np.array(self.lines[j][0]))
+
+        # Parse signature svg file to extract points
+        self.sign_svg_path = os.path.join(os.getcwd(), "src/sketchbot/data/signature.svg")
+        self.sign_svg = SVG.parse(self.sign_svg_path)
+        self.sign_scale = 0.00008
+
+        for element in self.sign_svg.elements():
+            if isinstance(element, Polyline):
+                pts = element.points
+                points = []
+                for i in range(len(pts)):
+                    # Convert from svg pixels to meters
+                    # z-coordinate is always 0 as paper touching
+                    pt = (pts[i].x * self.sign_scale, pts[i].y * self.sign_scale, 0.0)
+
+                    # Offset signature to the bottom right corner of the paper
+                    pt = (pt[0] + self.pix_scale * 550, pt[1] + self.pix_scale * 450, pt[2])
+
+                    points.append(pt)
+
+                # Add the start and end points of signature to the signature path with save_dist z-value
+                sign_start = np.array(points[0])
+                sign_start[2] = self.save_dist
+                sign_end = np.array(points[-1])
+                sign_end[2] = self.save_dist
+                self.signature_path.append([sign_start])
+                self.signature_path.append(points)
+                self.signature_path.append([sign_end])
 
     def get_air_path(self, start_line:int, end_line:int):
         """Gets intermediate air path between two draw paths by interpolation
@@ -115,7 +146,6 @@ class svg2path():
 
         return air_path
 
-
     def get_path(self):
         """Computes an ordered list of points to follow for drawing in an optimal order"""
 
@@ -160,6 +190,11 @@ class svg2path():
             self.complete_path.append(self.air_path[i])
             if i < len(self.draw_path):
                 self.complete_path.append(self.draw_path[i])
+
+        # Add signature path to the end of the complete path
+        if self.add_sign:
+            for i in range(len(self.signature_path)):
+                self.complete_path.append(self.signature_path[i])
 
         return self.complete_path
 
@@ -240,9 +275,10 @@ class svg2PathService(Node):
         save_dist = request.save_dist
         pix_scale = request.scale
         square_path = request.square_path
+        add_sign = request.add_sign
 
         # Create svg2path object
-        pathCreate = svg2path(svg_path, save_dist, pix_scale, square_path)
+        pathCreate = svg2path(svg_path, save_dist, pix_scale, square_path, add_sign)
 
         # Get path
         pathCreate.get_path()

@@ -137,8 +137,9 @@ class DrawbotService(Node):
     # req.lines_json = lines_json
     req.file_path = 'src/sketchbot/data/out.svg'
     req.save_dist = -0.025 # m safe distance from table
-    req.scale =  0.00035  # Converts 1024px to 18cm
-    req.square_path = False
+    req.scale =  0.00035  # Converts 512px to 18cm
+    req.square_path = False # Triangular air path
+    req.add_sign = True # Add robot signature to end of path
 
     self.get_logger().info('Calling svg2path service')
     svg2path_future = self.svg2path_cli.call_async(req)

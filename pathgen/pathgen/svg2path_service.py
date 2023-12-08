@@ -130,6 +130,11 @@ class svg2path():
         last_line_idx = first_line
         used_lines = [last_line_idx]
 
+        # Add the first line first point in the air path list with save_dist z-value
+        first_point = np.array(self.lines[first_line][0])
+        first_point[2] = self.save_dist
+        self.air_path.append([first_point])
+
         # In loop find the next line with the shortest distance from the end of the previous line
         # Add air path between each draw path segment
         while len(self.draw_path) < len(self.lines):
@@ -145,11 +150,16 @@ class svg2path():
             last_line_idx = next_line_idx
             used_lines.append(last_line_idx)
 
-        # Merge draw path and air path
-        for i in range(len(self.draw_path)):
-            self.complete_path.append(self.draw_path[i])
-            if i < len(self.air_path):
-                self.complete_path.append(self.air_path[i])
+        # Add the last line last point to air path list with save_dist z-value
+        last_point = np.array(self.lines[last_line_idx][-1])
+        last_point[2] = self.save_dist
+        self.air_path.append([last_point])
+
+        # Merge draw path and air path lists
+        for i in range(len(self.air_path)):
+            self.complete_path.append(self.air_path[i])
+            if i < len(self.draw_path):
+                self.complete_path.append(self.draw_path[i])
 
         return self.complete_path
 

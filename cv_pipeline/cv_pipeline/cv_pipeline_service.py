@@ -21,6 +21,22 @@ class CVPipelineService(Node):
     # Create service
     self.srv = self.create_service(Img2Svg, '/img2svg', self.img2svg_callback)
 
+    # Declare parameters
+    self.declare_parameter('padding', 0.35)
+    self.declare_parameter('contrast', 1.5)
+    self.declare_parameter('brightness', -64)
+
+
+  def adjust_contrast_brightness(img, contrast=1.0, brightness=0):
+    """
+    Adjusts contrast and brightness of an uint8 image.
+    contrast:   (0.0,  inf) with 1.0 leaving the contrast as is
+    brightness: [-255, 255] with 0 leaving the brightness as is
+    """
+
+    brightness += int(round(255*(1-contrast)/2))
+    return cv2.addWeighted(img, contrast, img, 0, brightness)
+
 
   def img2svg_callback(self, request, response):
     # Convert sensor_msgs/Image to numpy array
@@ -28,6 +44,11 @@ class CVPipelineService(Node):
 
     resolution = request.resolution if request.resolution > 0 else 1024
     length_threshold = request.length_threshold if request.length_threshold > 0 else 32
+
+    # From ROS parameters
+    padding = self.get_parameter('padding').get_parameter_value().double_value
+    contrast = self.get_parameter('contrast').get_parameter_value().double_value
+    brightness = self.get_parameter('brightness').get_parameter_value().integer_value
 
     cropped_image = image.copy()
 
@@ -49,9 +70,6 @@ class CVPipelineService(Node):
     # Draw a rectangle around the face
     # cv2.rectangle(draw_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    # Increase box sizes by a percentage
-    padding = 0.35
-
     x = max(int(x - (w * padding)), 0)
     y = max(int(y - (h * padding)), 0)
     w = min(int(w + (w * padding * 2)), image.shape[1] - x)
@@ -67,6 +85,9 @@ class CVPipelineService(Node):
 
     # Remove background
     processed_image = remove(cropped_image)
+
+    # Increase contrast and darken image
+    processed_image = self.adjust_contrast_brightness(processed_image, contrast=contrast, brightness=brightness)
 
     # Vectorize the image
     lines = sketch(processed_image, draw_hatch=False, contour_simplify=2, resolution=resolution)

@@ -27,7 +27,7 @@ class CVPipelineService(Node):
     self.declare_parameter('brightness', -64)
 
 
-  def adjust_contrast_brightness(img, contrast=1.0, brightness=0):
+  def adjust_contrast_brightness(self, img, contrast=1.0, brightness=0):
     """
     Adjusts contrast and brightness of an uint8 image.
     contrast:   (0.0,  inf) with 1.0 leaving the contrast as is
